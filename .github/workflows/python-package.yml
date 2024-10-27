@@ -1,0 +1,82 @@
+name: BPMN Validation
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  validate_bpmn:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Allows pushing to gh-pages
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Get list of changed BPMN files
+        id: get_changed_files
+        run: |
+          git fetch origin ${{ github.base_ref }} --depth=1
+          git diff --name-only origin/${{ github.base_ref }}...${{ github.head_ref }} > changed_files.txt
+          bpmn_files=$(grep '\.bpmn$' changed_files.txt || true)
+          if [ -z "$bpmn_files" ]; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "$bpmn_files" > bpmn_files.txt
+            echo "changed=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run BPMN Validator
+        if: steps.get_changed_files.outputs.changed == 'true'
+        run: python main.py --file-list bpmn_files.txt
+
+      - name: Deploy Report to GitHub Pages
+        if: steps.get_changed_files.outputs.changed == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor }}@users.noreply.github.com"
+
+          git clone --depth=1 --branch=gh-pages https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }} gh-pages
+
+          mkdir -p gh-pages/reports/pr-${{ github.event.pull_request.number }}
+          cp reports/report.html gh-pages/reports/pr-${{ github.event.pull_request.number }}/index.html
+
+          cd gh-pages
+          git add .
+          git commit -m "Add report for PR #${{ github.event.pull_request.number }}"
+          git push origin gh-pages
+
+      - name: Comment on PR with Report Link
+        if: steps.get_changed_files.outputs.changed == 'true'
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const prNumber = ${{ github.event.pull_request.number }};
+            const repo = context.repo.repo;
+            const owner = context.repo.owner;
+            const reportUrl = `https://${owner}.github.io/${repo}/reports/pr-${prNumber}/`;
+
+            github.rest.issues.createComment({
+              issue_number: prNumber,
+              owner: owner,
+              repo: repo,
+              body: `🚀 BPMN validation report is available [here](${reportUrl}).`
+            });
+
+      - name: No BPMN files changed
+        if: steps.get_changed_files.outputs.changed != 'true'
+        run: echo "No BPMN files were changed in this PR."
