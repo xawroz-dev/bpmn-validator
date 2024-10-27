@@ -1,0 +1,3 @@
+variable_name,is_pii,severity
+customerId,False,Medium
+customerEmail,True,High

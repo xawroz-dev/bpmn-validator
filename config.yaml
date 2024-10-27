@@ -1,0 +1,11 @@
+checks:
+  default_service_task_name: true
+  validate_variables: true
+
+fuzzy_match_threshold: 85
+
+approved_variables_file: 'data/approved_variables.csv'
+
+report:
+  output_file: 'reports/report.html'
+  template_file: 'templates/report_template.html'

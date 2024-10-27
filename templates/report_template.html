@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>BPMN Validation Report</title>
+    <!-- Bootstrap CSS via CDN -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+    <style>
+        body { padding: 20px; }
+        .issue { color: red; }
+        .suggestion { color: green; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="mb-4">BPMN Validation Report</h1>
+
+        <!-- Summary Table -->
+        <h2>Summary</h2>
+        <table class="table table-bordered">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Issue Type</th>
+                    <th>Count</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Default Service Task Names</td>
+                    <td>{{ results.default_name_issues|length }}</td>
+                </tr>
+                <tr>
+                    <td>Variable Name Issues</td>
+                    <td>{{ results.variable_name_issues|length }}</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Default Service Task Names -->
+        <h2 class="mt-5">Default Service Task Names</h2>
+        {% if results.default_name_issues %}
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>BPMN File</th>
+                        <th>Task ID</th>
+                        <th>Task Name</th>
+                        <th>Issue</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for issue in results.default_name_issues %}
+                    <tr>
+                        <td>{{ issue.file_name }}</td>
+                        <td>{{ issue.task_id }}</td>
+                        <td>{{ issue.task_name }}</td>
+                        <td><span class="issue">Default service task ID used.</span></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No issues found with service task names.</p>
+        {% endif %}
+
+        <!-- Variable Name Issues -->
+        <h2 class="mt-5">Variable Name Issues</h2>
+        {% if results.variable_name_issues %}
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>BPMN File</th>
+                        <th>Task ID</th>
+                        <th>Task Name</th>
+                        <th>Variable</th>
+                        <th>Suggestion</th>
+                        <th>Score</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for issue in results.variable_name_issues %}
+                    <tr>
+                        <td>{{ issue.file_name }}</td>
+                        <td>{{ issue.task_id }}</td>
+                        <td>{{ issue.task_name }}</td>
+                        <td><span class="issue">{{ issue.variable }}</span></td>
+                        <td>
+                            {% if issue.suggestion != 'No close match found' %}
+                                <span class="suggestion">{{ issue.suggestion }}</span>
+                            {% else %}
+                                {{ issue.suggestion }}
+                            {% endif %}
+                        </td>
+                        <td>{{ issue.score }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No issues found with variable names.</p>
+        {% endif %}
+    </div>
+</body>
+</html>
