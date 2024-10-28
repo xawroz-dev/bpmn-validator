@@ -1,14 +1,18 @@
 name: BPMN Validation
 
 on:
+  push:
+    branches:
+      - '**'
   pull_request:
-    types: [opened, synchronize, reopened]
+    branches:
+      - '**'
 
 jobs:
   validate_bpmn:
     runs-on: ubuntu-latest
     permissions:
-      contents: write  # Allows pushing to gh-pages
+      contents: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -27,8 +31,25 @@ jobs:
       - name: Get list of changed BPMN files
         id: get_changed_files
         run: |
-          git fetch origin ${{ github.base_ref }} --depth=1
-          git diff --name-only origin/${{ github.base_ref }}...${{ github.head_ref }} > changed_files.txt
+          # Set default base branch
+          DEFAULT_BRANCH='main'
+
+          # Determine the base ref and head ref
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            BASE_REF="${{ github.event.pull_request.base.sha }}"
+            HEAD_REF="${{ github.event.pull_request.head.sha }}"
+          else
+            BASE_REF="${{ github.event.before }}"
+            HEAD_REF="${{ github.event.after }}"
+          fi
+
+          echo "BASE_REF=$BASE_REF"
+          echo "HEAD_REF=$HEAD_REF"
+
+          git fetch origin $BASE_REF --depth=1 || git fetch origin $DEFAULT_BRANCH --depth=1
+          git fetch origin $HEAD_REF --depth=1
+
+          git diff --name-only $BASE_REF $HEAD_REF > changed_files.txt
           bpmn_files=$(grep '\.bpmn$' changed_files.txt || true)
           if [ -z "$bpmn_files" ]; then
             echo "changed=false" >> $GITHUB_OUTPUT
@@ -36,7 +57,6 @@ jobs:
             echo "$bpmn_files" > bpmn_files.txt
             echo "changed=true" >> $GITHUB_OUTPUT
           fi
-
       - name: Run BPMN Validator
         if: steps.get_changed_files.outputs.changed == 'true'
         run: python main.py --file-list bpmn_files.txt
