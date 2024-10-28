@@ -66,19 +66,26 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          git config user.name "${{ github.actor }}"
-          git config user.email "${{ github.actor }}@users.noreply.github.com"
-
+          # Clone the gh-pages branch
           git clone --depth=1 --branch=gh-pages https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }} gh-pages
-
+          
+          # Copy the report into the cloned repository
           mkdir -p gh-pages/reports/pr-${{ github.event.pull_request.number }}
           cp reports/report.html gh-pages/reports/pr-${{ github.event.pull_request.number }}/index.html
-
+          
+          # Navigate into the repository
           cd gh-pages
+          
+          # Configure Git inside the repository
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor }}@users.noreply.github.com"
+          
+          # Commit and push the changes
           git add .
           git commit -m "Add report for PR #${{ github.event.pull_request.number }}"
           git push origin gh-pages
-
+          
+          
       - name: Comment on PR with Report Link
         if: steps.get_changed_files.outputs.changed == 'true'
         uses: actions/github-script@v6
