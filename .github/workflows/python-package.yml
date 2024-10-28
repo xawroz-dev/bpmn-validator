@@ -82,12 +82,15 @@ jobs:
           git config user.name "${{ github.actor }}"
           git config user.email "${{ github.actor }}@users.noreply.github.com"
           
-          # Commit and push the changes
+          # Check if there are any changes to commit
+          if [ -n "$(git status --porcelain)" ]; then
           git add .
           git commit -m "Add report for PR #${{ github.event.pull_request.number }}"
           git push origin gh-pages
-          
-          
+          else
+          echo "No changes to commit"
+          fi
+         
       - name: Comment on PR with Report Link
         if: steps.get_changed_files.outputs.changed == 'true' && github.event_name == 'pull_request'
         uses: actions/github-script@v6
@@ -105,7 +108,7 @@ jobs:
               issue_number: prNumber,
               body: `🚀 BPMN validation report is available [here](${reportUrl}).`
             });
-            
+
       - name: No BPMN files changed
         if: steps.get_changed_files.outputs.changed != 'true'
         run: echo "No BPMN files were changed in this PR."
