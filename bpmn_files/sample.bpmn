@@ -25,7 +25,7 @@
     </bpmn2:serviceTask>
 
     <!-- Service Task with proper ID and approved variable -->
-    <bpmn2:serviceTask id="ProcessOrderTask" name="Process Order">
+    <bpmn2:serviceTask id="ProcessOrderTask" name="Process Order Task">
       <bpmn2:extensionElements>
         <camunda:inputOutput>
           <camunda:inputParameter name="orderId">someValue</camunda:inputParameter>
