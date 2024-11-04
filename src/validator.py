@@ -1,4 +1,5 @@
 import pandas as pd
+from thefuzz import process
 
 
 class Validator:
