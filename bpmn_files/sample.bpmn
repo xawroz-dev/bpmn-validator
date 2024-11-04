@@ -36,7 +36,7 @@
     </bpmn2:serviceTask>
 
     <!-- Service Task with default ID and multiple unapproved variables -->
-    <bpmn2:serviceTask id="Activity_456def" name="Another Service Task">
+    <bpmn2:serviceTask id="Activity_456def" name="Another Service">
       <bpmn2:extensionElements>
         <camunda:inputOutput>
           <camunda:inputParameter name="customer_name">someValue</camunda:inputParameter>
