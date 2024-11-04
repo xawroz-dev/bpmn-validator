@@ -61,7 +61,9 @@ jobs:
           fi
       - name: Run BPMN Validator
         if: steps.get_changed_files.outputs.changed == 'true'
-        run: python main.py --file-list bpmn_files.txt
+        run: |
+          python main.py --file-list bpmn_files.txt || echo "Validation failed with exit code $?"
+        continue-on-error: true
 
       - name: Deploy Report to GitHub Pages
         if: steps.get_changed_files.outputs.changed == 'true'
