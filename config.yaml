@@ -1,8 +1,12 @@
 checks:
-  default_service_task_name: true
-  validate_variables: true
+  default_service_task_name:
+    enabled: true
+    severity: 'error'  # 'error' for mandatory, 'warning' for optional
+  validate_variables:
+    enabled: true
+    severity: 'warning'
 
-fuzzy_match_threshold: 85
+fuzzy_match_threshold: 89
 
 approved_variables_file: 'data/approved_variables.csv'
 

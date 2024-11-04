@@ -15,6 +15,19 @@ class Config:
 
         # Assign configuration parameters with defaults where necessary
         self.checks = cfg.get('checks', {})
+        for check_name, check_cfg in cfg.get('checks', {}).items():
+            if isinstance(check_cfg, dict):
+                self.checks[check_name] = {
+                    'enabled': check_cfg.get('enabled', True),
+                    'severity': check_cfg.get('severity', 'warning')
+                }
+            else:
+                # For backward compatibility
+                self.checks[check_name] = {
+                    'enabled': bool(check_cfg),
+                    'severity': 'warning'
+                }
+
         self.fuzzy_match_threshold = cfg.get('fuzzy_match_threshold', 80)
         self.approved_variables_file = cfg.get('approved_variables_file', 'data/approved_variables.csv')
         self.report = cfg.get('report', {})
