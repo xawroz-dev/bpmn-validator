@@ -1,4 +1,6 @@
 import argparse
+import sys
+
 from src.config import Config
 from src.parser import BPMNParser
 from src.validator import Validator
@@ -42,6 +44,12 @@ def main():
     # Generate report
     reporter = Reporter(config)
     reporter.generate_report(validation_results)
+
+    # Exit with error code if there are errors
+    if validator.has_errors:
+        print("Validation failed due to errors in mandatory checks.")
+        sys.exit(1)
+
 
 if __name__ == '__main__':
     main()
